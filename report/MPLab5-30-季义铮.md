@@ -474,6 +474,9 @@ public static class PageRankReducer extends Reducer<Text, Text, Text, Text> {
 
     + 文件位置:/user/2020st30/output_1
     + 运行截图
+
+    ![任务一结果](D:\git\bigdata\report\assets\任务一结果.png)
+
     + 结果展示
     + 结果分析
 
