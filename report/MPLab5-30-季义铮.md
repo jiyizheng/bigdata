@@ -491,6 +491,9 @@ public static class PageRankReducer extends Reducer<Text, Text, Text, Text> {
     + 文件位置:/user/2020st30/output_2
     + 运行截图
     + 结果展示
+
+    ![image-20200730000607249](assets\任务二结果.png)
+
     + 结果分析
 
   + 人物关系图构建及归一化
@@ -504,6 +507,9 @@ public static class PageRankReducer extends Reducer<Text, Text, Text, Text> {
     + 文件位置:/user/2020st30/output_3
     + 运行截图
     + 结果展示
+    
+    ![任务三结果](assets\任务三结果.png)
+    
     + 结果分析
 
 + **PageRank**计算
