@@ -99,7 +99,7 @@ public class LabelPropagation {
             Configuration conf = new Configuration();
             String[] otherArgs = new GenericOptionsParser(conf, args).getRemainingArgs();
             if (otherArgs.length != 4) {
-                System.err.println(("Usage: ProProcessing <in> <rawtag> <out>"));
+                System.err.println(("Usage: LPA <in> <rawtag> <out>"));
                 System.exit(2);
             }
             Job job = new Job(conf, "LPA");
