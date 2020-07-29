@@ -31,11 +31,15 @@ public class CsvGeneriter{
         Scanner scPr = new Scanner(new File(args[1]),"UTF-8");
         while(scPr.hasNextLine()){
             line = scPr.nextLine();
-            StringTokenizer st0=new StringTokenizer(line);
-            String word = st0.nextToken();
-            double eValue = Double.parseDouble(st0.nextToken());
-            System.out.println(word+":"+eValue);
-            prs.put(word, eValue);
+            
+            int index_t = line.indexOf("\t");
+            int index_l = line.indexOf("[");
+            int index_r = line.indexOf("]");
+
+            String word = line.substring(0, index_t);
+            double value = Double.parseDouble(line.substring(index_l+1,index_r));
+            System.out.println(word+":"+value);
+            prs.put(word, value);
         }
         scPr.close();
 

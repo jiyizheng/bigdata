@@ -47,7 +47,7 @@ public class Normalization {
                 sb.append(nv[0] + ":" + String.format("%.4f", scale) + ";");
             }
             // sb.insert(0, key.toString() + "\t" + "0.1#");
-            sb.insert(0, key.toString() + "\t[");
+            sb.insert(0, key.toString() + "\t"+0.1+"[");
             String res = sb.toString().substring(0, sb.length() - 1)+"]";
 
             context.write(new Text(res), NullWritable.get());

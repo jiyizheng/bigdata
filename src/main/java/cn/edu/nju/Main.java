@@ -2,6 +2,7 @@ package cn.edu.nju;
 
 public class Main {
     public static void main(String[] args) throws Exception {
+        System.out.println(args);
         if (args[0].equals("proprocessing"))
             ProProcessing.main(args);
         else if (args[0].equals("cooccurrence"))
