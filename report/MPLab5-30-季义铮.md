@@ -540,7 +540,7 @@ hadoop jar exercise_2/JinYongUniverse.jar proprocessing  /user/2020st30/MP/Data/
 
 + 结果展示
 
-![task1](assets\task1.jpg)
+<img src='assets/task1.jpg' align='center'>
 
 + 结果分析
 
@@ -556,7 +556,7 @@ hadoop jar exercise_2/JinYongUniverse.jar cooccurrence /user/2020st30/output_1 /
 + 运行截图
 + 结果展示
 
-![task2](assets\task2.jpg)
+<img src='assets/task2.jpg' align='center'>
 
 + 结果分析
 
@@ -572,7 +572,7 @@ hadoop jar exercise_2/JinYongUniverse.jar normalization /user/2020st30/output_2 
 + 运行截图
 + 结果展示
 
-![task3](assets\task3.jpg)
+<img src='assets/task3.jpg' align='center'>
 
 + 结果分析
 
