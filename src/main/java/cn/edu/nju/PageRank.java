@@ -38,7 +38,7 @@ public class PageRank {
                     double cal = PR * relation;
                     context.write(new Text(nv[0]), new Text(String.valueOf(cal)));
                 }
-                context.write(new Text(name), new Text("#" + line.substring(index_t + 1)));
+                context.write(new Text(name), new Text("#" + line.substring(index_l)));
             }
         }
     }
@@ -51,8 +51,9 @@ public class PageRank {
             double count = 0;
             for (Text text : values) {
                 String t = text.toString();
-                if (t.charAt(0) != '#') {
-                    nameList = t;
+                if (t.charAt(0) == '#') {
+                    nameList = t.substring(1);
+                    //System.out.println("namelist:"+nameList);
                 } else {
                     count += Double.parseDouble(t);
                 }
@@ -63,14 +64,14 @@ public class PageRank {
 
     public static void main(String[] args) throws Exception {
 
-        for (int i = 0; i > maxTime; i++) {
+        for (int i = 0; i < maxTime; i++) {
             Configuration conf = new Configuration();
             String[] otherArgs = new GenericOptionsParser(conf, args).getRemainingArgs();
             if (otherArgs.length != 3) {
                 System.err.println("Usage: PageRank <in> <out>");
                 System.exit(2);
             }
-            Job job = Job.getInstance(conf, "PageRank");
+            Job job = Job.getInstance(conf, "Cooccurrence");
             job.setJarByClass(PageRank.class);
             job.setMapperClass(PageRankMapper.class);
             job.setReducerClass(PageRankReducer.class);
@@ -93,7 +94,7 @@ public class PageRank {
             }
             job.getConfiguration().set("times", String.valueOf(i));
 
-            Path out = new Path(otherArgs[2]);
+            Path out = new Path(otherArgs[2] + i);
             FileSystem fileSystem = FileSystem.get(conf);
             if (fileSystem.exists(out)) {
                 fileSystem.delete(out, true);
