@@ -1,8 +1,8 @@
-# 课程设计之金庸的江湖实验报告
+<h1 align = "center">课程设计之金庸的江湖</h1>
 
-#### 171860604 季义铮 2133441657@qq.com
+<h5 align = "center">171860604 季义铮 2133441657@qq.com</h5>
 
-#### 171860602 郭开天 870082743@qq.com
+<h5 align = "center">171860602 郭开天 870082743@qq.com</h5>
 
 ### 1.课程设计目标
 
@@ -75,7 +75,7 @@
 
     + setup：按行读取上传到HDFS的人名列表文件（People_List_unique.txt），然后将其导入**Ansj_seg**工具的自定义的字典中，并归类为names。
     
-    + map：使用**DicAnalysis**——用户词典优先的方法进行分词，如果词性为names，提取人名，写入key
+    + map：使用**DicAnalysis**——用户自定义词典优先策略进行分词，对分词的结果逐个进行测试，如果词性为names，则在字典里，提取人名，写入key
     
   + **DRIVER**
     + 根据输入命命令设置输入文件目录，人名列表，输出文件目录。
@@ -203,7 +203,7 @@
   + **Mapper**
     + 确保人物的所有邻居输出到相同结点处理：在 Mapper 结点将输入的键值对“< 狄云，戚芳 > 1”拆分，输出新的键值对“< 狄云 > 戚芳 :1”，“狄云”的所有邻居会被分配给同一个 Reducer 结点处理。
   + **Reducer**
-    + 在 Reducer 结点首先统计该人物与所有邻居同现的次数和 count，每个邻居的的同现次数除以 count 就得到共现概率。为了提高效率，在第一次遍历邻居的时候，可以把名字和共现次数保存在链表里，避免重复处理字符串。
+    + 在 Reducer 结点首先统计该人物与所有邻居同现的次数和 count，每个邻居的的同现次数除以 count 就得到共现概率。为了提高效率，在第一次遍历邻居的时候，可以把名字和共现次数保存在链表里，避免重复处理字符串。由于后续实验在**PageRank**计算中需要设置初始pr值0.1，为了算法性能的优化，直接在value字段前加上pr初始值0.1
 
 
 + **MapReduce** 设计
@@ -232,10 +232,11 @@
               StringBuilder sb = new StringBuilder();
               List<String> list = new ArrayList<>();
               for (Text str : values) {
-                  list.add(str.toString());
+                  list.add(str.toString());//人名链表
                   String[] nv = str.toString().split("\\s+");
                   count += Integer.parseInt(nv[1]);
               }
+  
               for (String text : list) {
                   String[] nv = text.split("\\s+");
                   double number = Integer.parseInt(nv[1]);
@@ -243,7 +244,7 @@
                   sb.append(nv[0] + ":" + String.format("%.4f", scale) + ";");
               }
               // sb.insert(0, key.toString() + "\t" + "0.1#");
-              sb.insert(0, key.toString() + "\t[");
+              sb.insert(0, key.toString() + "\t"+0.1+"[");
               String res = sb.toString().substring(0, sb.length() - 1)+"]";
   
               context.write(new Text(res), NullWritable.get());
@@ -266,14 +267,14 @@
      PageRank 有两个比较常用的模型：简单模型和随机浏览模型。由于本次设计考虑的是人物关系而不是网页跳转，因此简单模型比较合适。简单模型的计算公式如下，其中 $B_i$ 为所有连接到人物 $i$的集合，$L_j$ 为人物$ j $对外连接边的总数
 
   $$
-P{R_i} = \sum\limits_{(j,i) \in {B_i}} {\frac{{P{R_j}}}{{{L_j}}} \tag{1}} 
+P{R_i} = \sum\limits_{(j,i) \in {B_i}} {\frac{{P{R_j}}}{{{L_j}}} \tag{1}}
   $$
 
-  ​                                                         $$$$
-
   + 在本次设计的任务 3 中，已经对每个人物的边权值进行归一化处理，边的权值可以看做是对应连接的人物占总边数的比例。设$w_{j}(P_i)$表示人物$ i $在人物$ j $所有边中所占的权重，则 PageRank 计算公式可以改写为
-
-  ​														$$R({P_i}) = \sum\limits_{{P_j} \in {B_i}} {{w_{j}(P_i)}{*}R({P_j})} $$
+  $$
+    R({P_i}) = \sum\limits_{{P_j} \in {B_i}} {{w_{j}(P_i)}{*}R({P_j})} \tag{2}
+  $$
+    
 
   + PR值排名不变的比例随迭代次数变化的关系图如下，由于我们考虑的是找出小说中的主角，所以只要关心PR值前100名的人物的排名的变化情况，可以看到迭代次数在10以后，PR值排名不变的比例已经趋于稳定了，所以基于效率考虑，选取10作为PR的迭代次数。
 
@@ -284,12 +285,14 @@ P{R_i} = \sum\limits_{(j,i) \in {B_i}} {\frac{{P{R_j}}}{{{L_j}}} \tag{1}}
 + 实现细节
 
   + **Mapper**
-    + 创建邻接图和赋予初始PR值0.1：逐行分析原始数据，以每个人的人名作为key值，赋予初始值0.1
+    + 创建邻接图和获取初始PR值0.1：逐行分析原始数据，以每个人的人名作为key值，读取归一化中设置的0.1，设为初始pr值
     + Map：产生两种类型的<key,value>：< 人物名，PageRrank 值 >，< 人物名，关系链表 >。
       + 第一个人物名是关系图中当前人物所连接到的人物名，其PR值由当前人物的PageRank值乘以出边在当前人物中的权重得到
       + 第二个人物名是本身人物名，为了保存连接信息，以保证完成迭代过程，添加"#"供区分
   + **Reducer**
-    + Reduce：将同一人物名的<key,value>汇聚到一起，如果value是PR值，则累加到count变量，输出键值对<key,(pr#links)>
+    + Reduce：将同一人物名的<key,value>汇聚到一起，如果value是PR值，则累加到count变量，如果是关系链表则保存为namelist,输出键值对<key,(count#namelist)>,这样就完成了一次迭代过程
+  + **Driver**
+    + 迭代十次，每次迭代的输入是上一次迭代的结果，迭代的结果是下一次迭代的输入。
 
 + **MapReduce** 设计
 
@@ -323,24 +326,77 @@ P{R_i} = \sum\limits_{(j,i) \in {B_i}} {\frac{{P{R_j}}}{{{L_j}}} \tag{1}}
   ```
   
   + **Reducer**
+  
+  ```java
+  public static class PageRankReducer extends Reducer<Text, Text, Text, Text> {
+          @Override
+          protected void reduce(Text key, Iterable<Text> values, Context context)
+                  throws IOException, InterruptedException {
+              String nameList = "";
+              double count = 0;
+              for (Text text : values) {
+                  String t = text.toString();
+                  if (t.charAt(0) != '#') {
+                      nameList = t;
+                  } else {
+                      count += Double.parseDouble(t);
+                  }
+              }
+              context.write(key, new Text(String.valueOf(count) + nameList));
+          }
+      }
+  ```
+  
+  
+  
+  + **Driver**
 
 ```java
-public static class PageRankReducer extends Reducer<Text, Text, Text, Text> {
-        @Override
-        protected void reduce(Text key, Iterable<Text> values, Context context)
-                throws IOException, InterruptedException {
-            String nameList = "";
-            double count = 0;
-            for (Text text : values) {
-                String t = text.toString();
-                if (t.charAt(0) != '#') {
-                    nameList = t;
-                } else {
-                    count += Double.parseDouble(t);
-                }
+ public static void main(String[] args) throws Exception {
+
+        for (int i = 0; i > maxTime; i++) {
+            Configuration conf = new Configuration();
+            String[] otherArgs = new GenericOptionsParser(conf, args).getRemainingArgs();
+            if (otherArgs.length != 3) {
+                System.err.println("Usage: PageRank <in> <out>");
+                System.exit(2);
             }
-            context.write(key, new Text(String.valueOf(count) + nameList));
+            Job job = Job.getInstance(conf, "PageRank");
+            job.setJarByClass(PageRank.class);
+            job.setMapperClass(PageRankMapper.class);
+            job.setReducerClass(PageRankReducer.class);
+
+            // job.setPartitionerClass();
+            // job.setGroupingComparatorClass();
+
+            job.setMapOutputKeyClass(Text.class);
+            job.setMapOutputValueClass(Text.class);
+
+            job.setOutputKeyClass(Text.class);
+            job.setOutputValueClass(Text.class);
+
+            if (i == 0) {
+                FileInputFormat.addInputPath(job, new Path(otherArgs[1]));
+                FileOutputFormat.setOutputPath(job, new Path(otherArgs[2] + i));
+            } else {
+                FileInputFormat.addInputPath(job, new Path(otherArgs[2] + (i - 1)));
+                FileOutputFormat.setOutputPath(job, new Path(otherArgs[2] + i));
+            }
+            job.getConfiguration().set("times", String.valueOf(i));
+
+            Path out = new Path(otherArgs[2]);
+            FileSystem fileSystem = FileSystem.get(conf);
+            if (fileSystem.exists(out)) {
+                fileSystem.delete(out, true);
+            }
+
+            System.out.println("iteration " + i);
+
+            if (!job.waitForCompletion(true)) {
+                System.exit(1);
+            }
         }
+        System.exit(0);
     }
 
 ```
@@ -465,6 +521,9 @@ public static class PageRankReducer extends Reducer<Text, Text, Text, Text> {
   + 该软件支持使用csv数据格式导入节点列表和边列表；同时使用节点属性进行渲染，数据格式如下：
     + 边列表：
     + 节点列表：
++ 边列表和节点列表的生成通过**CsvGeneriter**类来实现
+  + 实现细节
+    + 通过PageRank，关系权重，标签，生成点，边，标签的集合
 
 ### 6.实验结果
 
