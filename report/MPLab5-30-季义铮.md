@@ -67,13 +67,13 @@
 
 + 分词工具介绍
 
-  **Ansj_seg**支持对中文文本进行分词，并且可以添加用户自定义的词典，这样它可以准确识别金庸武侠小说中的人名。实验中使用了用户自定义词典，以及用户自定义词典优先的分词。
+  **Ansj_seg**支持对中文文本进行分词，并且可以添加用户自定义的词典，这样它可以准确识别金庸武侠小说中的人名。实验中使用了用户自定义词典，以及用户自定义词典优先的分词，如果在字典里，就是人名。
 
 + 实现细节
 
   + **Mapper**
 
-    + setup：按行读取用cacheFile的方式共享的文件（People_List_unique.txt），然后将其导入**Ansj_seg**工具的自定义的字典中，并归类为names。
+    + setup：按行读取上传到HDFS的人名列表文件（People_List_unique.txt），然后将其导入**Ansj_seg**工具的自定义的字典中，并归类为names。
     
     + map：使用**DicAnalysis**——用户词典优先的方法进行分词，如果词性为names，提取人名，写入key
     
@@ -265,12 +265,22 @@
      相应地，PageRank 算法应用到人物关系图上可以这么理解：如果一个人物与多个人物存在关系连接，说明这个人物是重要的，其 PageRank 值响应也会较高；如果一个 PageRank 值很高的人物与另外一个人物之间有关系连接，那么那个人物的 PageRank 值也会相应地提高。一个人物的 PageRank 值越高，他就越可能是小说中的主角。
      PageRank 有两个比较常用的模型：简单模型和随机浏览模型。由于本次设计考虑的是人物关系而不是网页跳转，因此简单模型比较合适。简单模型的计算公式如下，其中 $B_i$ 为所有连接到人物 $i$的集合，$L_j$ 为人物$ j $对外连接边的总数
 
-  ​                                                         $$P{R_i} = \sum\limits_{(j,i) \in {B_i}} {\frac{{P{R_j}}}{{{L_j}}}} $$
+  $$
+P{R_i} = \sum\limits_{(j,i) \in {B_i}} {\frac{{P{R_j}}}{{{L_j}}} \tag{1}} 
+  $$
+
+  ​                                                         $$$$
 
   + 在本次设计的任务 3 中，已经对每个人物的边权值进行归一化处理，边的权值可以看做是对应连接的人物占总边数的比例。设$w_{j}(P_i)$表示人物$ i $在人物$ j $所有边中所占的权重，则 PageRank 计算公式可以改写为
 
-  ​														$R({P_i}) = \sum\limits_{{P_j} \in {B_i}} {{w_{j}(P_i)}{*}R({P_j})} $
+  ​														$$R({P_i}) = \sum\limits_{{P_j} \in {B_i}} {{w_{j}(P_i)}{*}R({P_j})} $$
 
+  + PR值排名不变的比例随迭代次数变化的关系图如下，由于我们考虑的是找出小说中的主角，所以只要关心PR值前100名的人物的排名的变化情况，可以看到迭代次数在10以后，PR值排名不变的比例已经趋于稳定了，所以基于效率考虑，选取10作为PR的迭代次数。
+
+    <img src='\assets\lpa.png' align='center'>
+  
+    
+  
 + 实现细节
 
   + **Mapper**
@@ -287,56 +297,52 @@
 
   ```java
   public static class PageRankMapper extends Mapper<LongWritable, Text, Text, Text> {
+  
           @Override
           protected void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
               String line = value.toString();
-              int index_dollar = line.indexOf("$");
-              if (index_dollar != -1) {
-                  line = line.substring(index_dollar + 1);
+              if (line.length() > 0) {
+                  int index_t = line.indexOf("\t");
+                  int index_l = line.indexOf("[");
+                  int index_r = line.indexOf("]");
+                  // int index_j = line.indexOf("#");
+                  // double PR = Double.parseDouble(line.substring(index_t + 1, index_j));
+                  double PR = Double.parseDouble(line.substring(index_t + 1, index_l));
+                  String name = line.substring(0, index_t);
+                  String names = line.substring(index_l + 1, index_r);
+                  for (String name_value : names.split(";")) {
+                      String[] nv = name_value.split(":");
+                      double relation = Double.parseDouble(nv[1]);
+                      double cal = PR * relation;
+                      context.write(new Text(nv[0]), new Text(String.valueOf(cal)));
+                  }
+                  context.write(new Text(name), new Text("#" + line.substring(index_t + 1)));
               }
-              int index_t = line.indexOf("\t");
-              int index_l = line.indexOf("[");
-              int index_r = line.indexOf("]");
-              // int index_j = line.indexOf("#");
-              // double PR = Double.parseDouble(line.substring(index_t + 1, index_j));
-              double PR = 0.1;
-              String name = line.substring(0, index_t);
-              String names = line.substring(index_l+1,index_r);
-              for (String name_value : names.split(";")) {
-                  // System.out.println(name_value);
-                  String[] nv = name_value.split(":");
-                  double relation = Double.parseDouble(nv[1]);
-                  double cal = PR * relation;
-                  context.write(new Text(nv[0]), new Text(String.valueOf(cal)));
-              }
-              context.write(new Text(name), new Text("#" + line.substring(index_t + 1)));
           }
       }
   ```
-
+  
   + **Reducer**
 
 ```java
 public static class PageRankReducer extends Reducer<Text, Text, Text, Text> {
-        // int index = 0;
         @Override
         protected void reduce(Text key, Iterable<Text> values, Context context)
                 throws IOException, InterruptedException {
-            // String nameList = "";
+            String nameList = "";
             double count = 0;
             for (Text text : values) {
                 String t = text.toString();
                 if (t.charAt(0) != '#') {
-                    // nameList = t;
-                // } else {
+                    nameList = t;
+                } else {
                     count += Double.parseDouble(t);
                 }
             }
-            // index++;
-            // context.write(new Text(index + "$" + key.toString()), new Text(String.valueOf(count) + nameList));
-            context.write(key, new Text(String.valueOf(count)));
+            context.write(key, new Text(String.valueOf(count) + nameList));
         }
     }
+
 ```
 
 #### 步骤三：基于人物关系图的标签传播
@@ -475,7 +481,7 @@ public static class PageRankReducer extends Reducer<Text, Text, Text, Text> {
     + 文件位置:/user/2020st30/output_1
     + 运行截图
 
-    ![任务一结果](assets\task1.png)
+    <img src='\assets\task1.png' align='center'>
 
     + 结果展示
     + 结果分析
