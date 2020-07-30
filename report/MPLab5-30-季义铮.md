@@ -274,11 +274,11 @@ P{R_i} = \sum\limits_{(j,i) \in {B_i}} {\frac{{P{R_j}}}{{{L_j}}} \tag{1}}
   $$
     R({P_i}) = \sum\limits_{{P_j} \in {B_i}} {{w_{j}(P_i)}{*}R({P_j})} \tag{2}
   $$
-    
+  
 
   + PR值排名不变的比例随迭代次数变化的关系图如下，由于我们考虑的是找出小说中的主角，所以只要关心PR值前100名的人物的排名的变化情况，可以看到迭代次数在10以后，PR值排名不变的比例已经趋于稳定了，所以基于效率考虑，选取10作为PR的迭代次数。
 
-    <img src='\assets\lpa.png' align='center'>
+    <img src='assets/lpa.jpg' align='center'>
   
     
   
@@ -527,97 +527,96 @@ P{R_i} = \sum\limits_{(j,i) \in {B_i}} {\frac{{P{R_j}}}{{{L_j}}} \tag{1}}
 
 ### 6.实验结果
 
-+ 对小说的处理
+##### 数据预处理
 
-  + 数据预处理
++ 执行方式
 
-    + 执行方式
+```
+hadoop jar exercise_2/JinYongUniverse.jar proprocessing  /user/2020st30/MP/Data/wuxia_novels  /user/2020st30/MP/Data/People_List_unique.txt  /user/2020st30/output_1
+```
 
-    ```
-    hadoop jar exercise_2/JinYongUniverse.jar proprocessing  /user/2020st30/MP/Data/wuxia_novels  /user/2020st30/MP/Data/People_List_unique.txt  /user/2020st30/output_1
-    ```
++ 文件位置:/user/2020st30/output_1
++ 运行截图
 
-    + 文件位置:/user/2020st30/output_1
-    + 运行截图
++ 结果展示
 
-    <img src='\assets\task1.png' align='center'>
+![task1](assets\task1.jpg)
 
-    + 结果展示
-    + 结果分析
++ 结果分析
 
-  + 同现统计
+##### 同现统计
 
-    + 执行方式
++ 执行方式
 
-    ```
-    hadoop jar exercise_2/JinYongUniverse.jar cooccurrence /user/2020st30/output_1 /user/2020st30/output_2
-    ```
+```
+hadoop jar exercise_2/JinYongUniverse.jar cooccurrence /user/2020st30/output_1 /user/2020st30/output_2
+```
 
-    + 文件位置:/user/2020st30/output_2
-    + 运行截图
-    + 结果展示
++ 文件位置:/user/2020st30/output_2
++ 运行截图
++ 结果展示
 
-    ![image-20200730000607249](assets\task2.png)
+![task2](assets\task2.jpg)
 
-    + 结果分析
++ 结果分析
 
-  + 人物关系图构建及归一化
+##### 人物关系图构建及归一化
 
-    + 执行方式
++ 执行方式
 
-    ```
-    hadoop jar exercise_2/JinYongUniverse.jar normalization /user/2020st30/output_2 /user/2020st30/output_3
-    ```
+```
+hadoop jar exercise_2/JinYongUniverse.jar normalization /user/2020st30/output_2 /user/2020st30/output_3
+```
 
-    + 文件位置:/user/2020st30/output_3
-    + 运行截图
-    + 结果展示
-    
-    ![任务三结果](assets\task3.png)
-    
-    + 结果分析
++ 文件位置:/user/2020st30/output_3
++ 运行截图
++ 结果展示
 
-+ **PageRank**计算
+![task3](assets\task3.jpg)
 
-  + 执行方式
++ 结果分析
 
-  ```
-  hadoop jar exercise_2/JinYongUniverse.jar pagerank /user/2020st30/output_3 /user/2020st30/output_4
-  ```
+##### **PageRank**计算
 
-  + 文件位置:/user/2020st30/output_4
-  + 运行截图
-  + 结果展示
-  + 结果分析
++ 执行方式
 
-+ 标签传播
+```
+hadoop jar exercise_2/JinYongUniverse.jar pagerank /user/2020st30/output_3 /user/2020st30/output_4
+```
 
-  + 执行方式
++ 文件位置:/user/2020st30/output_4
++ 运行截图
++ 结果展示
++ 结果分析
 
-  ```
-  hadoop jar exercise_2/JinYongUniverse.jar lpa   /user/2020st30/output_3 /user/2020st30/RawTagPre.txt /user/2020st30/output_5
-  ```
+##### 标签传播
 
-  + 文件位置:/user/2020st30/RawTagPre.txt
-  + 运行截图
-  + 结果展示
-  + 结果分析
++ 执行方式
 
-+ 可视化csv生成
+```
+hadoop jar exercise_2/JinYongUniverse.jar lpa   /user/2020st30/output_3 /user/2020st30/RawTagPre.txt /user/2020st30/output_5
+```
 
-  + 执行方式
++ 文件位置:/user/2020st30/RawTagPre.txt
++ 运行截图
++ 结果展示
++ 结果分析
 
-  ```
-  java -jar JinYongUniverse.jar csv pagerank relation tag
-  ```
+##### 可视化csv生成
 
-  + 结果展示
-  + 结果分析
++ 执行方式
 
-+ 可视化
+```
+java -jar JinYongUniverse.jar csv pagerank relation tag
+```
 
-  + 结果展示
-  + 结果分析
++ 结果展示
++ 结果分析
+
+##### 可视化
+
++ 结果展示
++ 结果分析
 
 ### 7.性能分析
 
