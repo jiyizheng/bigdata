@@ -58,10 +58,10 @@ public class Normalization {
         Configuration conf = new Configuration();
         String[] otherArgs = new GenericOptionsParser(conf, args).getRemainingArgs();
         if (otherArgs.length != 3) {
-            System.err.println("Usage: Cooccurrence <in> <out>");
+            System.err.println("Usage: Normalization <in> <out>");
             System.exit(2);
         }
-        Job job = Job.getInstance(conf, "Cooccurrence");
+        Job job = Job.getInstance(conf, "Normalization");
         job.setJarByClass(Normalization.class);
         job.setMapperClass(NormalizationMapper.class);
         job.setReducerClass(NormalizationReducer.class);
