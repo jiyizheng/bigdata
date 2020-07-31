@@ -145,9 +145,9 @@
 
   + **Mapper**
     + 在同一段中，人名可能多次出现，任务一只负责提取出所有的人名，没有剔除多余的人名，任务必须在输出同现次数之前处理冗余人名。在 Mapper 中创建一个集合，把所有人名放入集合中，集合会自动剔除冗余的人名。
-    + 进行人物同现统计，遍历集合中的名字，如果两者名字不相同，则作为Map的输出
+    + 进行人物同现统计，遍历集合中的名字，如果两者名字不相同，则输出<<name1,name2>,1>
   + **Reducer**
-    + 同现次数统计：两个人物之间应该输出两个键值对，如“狄云”和“戚芳”，应该输出“< 狄云，戚芳 > 1”和“< 戚芳，狄云 > 1”。多个段落中允许输出相同的键值对，因此，Reducer 中需要整合具有相同键的输出，输出总的同现次数。
+    + 同现次数统计：两个人物之间应该输出两个键值对，如“狄云”和“戚芳”，应该输出“狄云，戚芳  1”和“戚芳，狄云  1”。多个段落中允许输出相同的键值对，因此，Reducer 中需要整合具有相同键的输出，输出总的同现次数。
 
 + **MapReduce 设计**
 
@@ -237,7 +237,7 @@
                   count += Integer.parseInt(nv[1]);
               }
   
-              for (String text : list) {
+              for (String text : list) {//遍历人名链表
                   String[] nv = text.split("\\s+");
                   double number = Integer.parseInt(nv[1]);
                   double scale = number / count;
@@ -328,7 +328,7 @@ P{R_i} = \sum\limits_{(j,i) \in {B_i}} {\frac{{P{R_j}}}{{{L_j}}} \tag{1}}
   + **Reducer**
   
   ```java
-  public static class PageRankReducer extends Reducer<Text, Text, Text, Text> {
+      public static class PageRankReducer extends Reducer<Text, Text, Text, Text> {
           @Override
           protected void reduce(Text key, Iterable<Text> values, Context context)
                   throws IOException, InterruptedException {
@@ -336,8 +336,9 @@ P{R_i} = \sum\limits_{(j,i) \in {B_i}} {\frac{{P{R_j}}}{{{L_j}}} \tag{1}}
               double count = 0;
               for (Text text : values) {
                   String t = text.toString();
-                  if (t.charAt(0) != '#') {
-                      nameList = t;
+                  if (t.charAt(0) == '#') {
+                      nameList = t.substring(1);
+                      //System.out.println("namelist:"+nameList);
                   } else {
                       count += Double.parseDouble(t);
                   }
@@ -347,14 +348,12 @@ P{R_i} = \sum\limits_{(j,i) \in {B_i}} {\frac{{P{R_j}}}{{{L_j}}} \tag{1}}
       }
   ```
   
-  
-  
   + **Driver**
 
 ```java
  public static void main(String[] args) throws Exception {
 
-        for (int i = 0; i > maxTime; i++) {
+        for (int i = 0; i < maxTime; i++) {
             Configuration conf = new Configuration();
             String[] otherArgs = new GenericOptionsParser(conf, args).getRemainingArgs();
             if (otherArgs.length != 3) {
@@ -384,7 +383,7 @@ P{R_i} = \sum\limits_{(j,i) \in {B_i}} {\frac{{P{R_j}}}{{{L_j}}} \tag{1}}
             }
             job.getConfiguration().set("times", String.valueOf(i));
 
-            Path out = new Path(otherArgs[2]);
+            Path out = new Path(otherArgs[2] + i);
             FileSystem fileSystem = FileSystem.get(conf);
             if (fileSystem.exists(out)) {
                 fileSystem.delete(out, true);
@@ -398,7 +397,6 @@ P{R_i} = \sum\limits_{(j,i) \in {B_i}} {\frac{{P{R_j}}}{{{L_j}}} \tag{1}}
         }
         System.exit(0);
     }
-
 ```
 
 #### 步骤三：基于人物关系图的标签传播
@@ -411,7 +409,8 @@ P{R_i} = \sum\limits_{(j,i) \in {B_i}} {\frac{{P{R_j}}}{{{L_j}}} \tag{1}}
 
   + **Mapper**
     + setup：初始化键值对列表，将原来初始化的标签信息读入内存中
-    + map：迭代计算，对每个节点都用一个数组储存周围所有节点的权重，分别求和后选择权重最大的非0标签设为自己新的标签，每次迭代后将新的结果储存到原来的文件中。
+    + map：迭代计算，对每个节点都用一个数组储存周围所有节点的权重，分别求和后选择权重最大的非0标签设为自己新的标签.
+    + cleanup:每次迭代后将新的结果储存到原来的文件中。
   + **Driver**
     + 设置输入，原始标签信息，输出。
 
@@ -420,18 +419,14 @@ P{R_i} = \sum\limits_{(j,i) \in {B_i}} {\frac{{P{R_j}}}{{{L_j}}} \tag{1}}
   + **Mapper**
 
   ```java
-   public static class LabelPropagationMapper extends Mapper<Object, Text, Text, Text> {
-          // 前两个object ,text 参数表示输入,后两个text,text 表示输出 .
+  public static class LabelPropagationMapper extends Mapper<Object, Text, Text, NullWritable> {
           HashMap<String, Integer> temp_label1 = new HashMap<String, Integer>();
-          // temp_label1用于从文件中读取数据
           HashMap<String, Integer> temp_label2 = new HashMap<String, Integer>();
-          // temp_label2用于储存迭代后的数据并读入文件中
           FileSystem hdfs;
           String rawTag;
   
           // 用于初始化键值对列表
           public void setup(Context context) throws IOException {
-              // context是map任务运行中的一个上下文，包含了整个任务的全部信息，hdfs用于获取这些任务信息
               rawTag = context.getConfiguration().get("rawtag");
               hdfs = FileSystem.get(context.getConfiguration());
               Scanner tagFile = new Scanner(hdfs.open(new Path(rawTag)), "UTF-8");
@@ -445,8 +440,7 @@ P{R_i} = \sum\limits_{(j,i) \in {B_i}} {\frac{{P{R_j}}}{{{L_j}}} \tag{1}}
           }
   
           // 用于map集群计算
-          public void map(Object key, Text value, Context context) {
-              // my_key 表示输入的key和value，context用于写入处理后的数据
+          public void map(Object key, Text value, Context context) throws IOException, InterruptedException {
               String line = value.toString();
               int index_t = line.indexOf("\t");
               int index_l = line.indexOf("[");
@@ -455,55 +449,43 @@ P{R_i} = \sum\limits_{(j,i) \in {B_i}} {\frac{{P{R_j}}}{{{L_j}}} \tag{1}}
               String mainName = line.substring(0, index_t);
               String names = line.substring(index_l + 1, index_r);
               StringTokenizer st1 = new StringTokenizer(names, ";");
-              // st1 表示关系列表中某一项所有关系的内容
-              // String = st1.nextToken();
               if (!temp_label1.containsKey(mainName)) {
                   System.err.println(("error: " + mainName + " not found at " + context.getConfiguration().get("times")));
                   // System.exit(2);
                   return;
               }
-              // nextWord 表示第一个key的值
-              // StringTokenizer st2 = new StringTokenizer(st1.nextToken(), "|");
-              // st2 表示某一个人名与前面人名的关系记录
               double[] my_list = new double[15];
               for (int i = 0; i < 15; i++)
                   my_list[i] = 0;
-              // int text_num = 0;
               while (st1.hasMoreTokens()) {
                   StringTokenizer st2 = new StringTokenizer(st1.nextToken(), ":");
                   String conName = st2.nextToken();
-                  // st_name 表示关系列表中某一项的人名
                   double conValue = Double.parseDouble(st2.nextToken());
-                  // st_name 表示关系列表中当前人名的权重
                   if (!temp_label1.containsKey(conName))
                       continue;
-                  // 查找当前人名是否存在于人名类别列表中
                   int temp_value = temp_label1.get(conName);
-                  // 找到当前人名的类别
                   my_list[temp_value] += conValue;
-                  // text_num++;
               }
               int temp_max = 1;
               for (int i = 2; i < 15; i++) {
                   if (my_list[i] > my_list[temp_max])
                       temp_max = i;
               }
-              if (my_list[temp_max] > 0)
+              if (my_list[temp_max] > 0) {
                   temp_label2.put(mainName, temp_max);
-              else
+                  context.write(new Text(mainName + String.valueOf(temp_max)), NullWritable.get());
+              } else {
                   temp_label2.put(mainName, 0);
+                  context.write(new Text(mainName + String.valueOf(0)), NullWritable.get());
+              }
           }
   
-          // 用于最后的数据写入
           public void cleanup(Context context) throws IOException {
               hdfs.delete(new Path(rawTag), true);
-              // 先清除原来文件中的信息
               FSDataOutputStream out_put = hdfs.create(new Path(rawTag));
               PrintWriter pr1 = new PrintWriter(out_put);
               Set<Entry<String, Integer>> set = temp_label2.entrySet();
-              // 设置映射项，里面有getkey(),getValue()方法
               Iterator<Entry<String, Integer>> iterator = set.iterator();
-              // 迭代器
               while (iterator.hasNext()) {
                   Entry<String, Integer> entry = iterator.next();
                   pr1.println(new String(entry.getKey() + " " + entry.getValue()));
