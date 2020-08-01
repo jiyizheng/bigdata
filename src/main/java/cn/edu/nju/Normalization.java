@@ -58,7 +58,7 @@ public class Normalization {
         Configuration conf = new Configuration();
         String[] otherArgs = new GenericOptionsParser(conf, args).getRemainingArgs();
         if (otherArgs.length != 3) {
-            System.err.println("Usage: Normalization <in> <out>");
+            System.err.println("Usage: normalization <in> <out>");
             System.exit(2);
         }
         Job job = Job.getInstance(conf, "Normalization");

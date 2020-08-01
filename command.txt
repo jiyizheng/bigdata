@@ -1,0 +1,5 @@
+ hadoop jar CurDsn.jar proprocessing MP/Data/wuxia_novels namelist.txt task1out
+ hadoop jar CurDsn.jar cooccurrence task1out task2out
+ hadoop jar CurDsn.jar normalization task2out task3out
+ hadoop jar CurDsn.jar pagerank task3out task4out
+ hadoop jar CurDsn.jar lpa task4out rawtag.txt task5out

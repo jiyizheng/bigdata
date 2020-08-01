@@ -71,7 +71,7 @@ public class PageRank {
                 System.err.println("Usage: PageRank <in> <out>");
                 System.exit(2);
             }
-            Job job = Job.getInstance(conf, "Cooccurrence");
+            Job job = Job.getInstance(conf, "PageRank");
             job.setJarByClass(PageRank.class);
             job.setMapperClass(PageRankMapper.class);
             job.setReducerClass(PageRankReducer.class);

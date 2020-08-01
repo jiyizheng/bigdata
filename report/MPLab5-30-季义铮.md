@@ -515,74 +515,126 @@ P{R_i} = \sum\limits_{(j,i) \in {B_i}} {\frac{{P{R_j}}}{{{L_j}}} \tag{1}}
 + 执行方式
 
 ```
-hadoop jar exercise_2/JinYongUniverse.jar proprocessing  /user/2020st30/MP/Data/wuxia_novels  /user/2020st30/MP/Data/People_List_unique.txt  /user/2020st30/output_1
+hadoop jar CurDsn.jar proprocessing  MP/Data/wuxia_novels  MP/Data/People_List_unique.txt MP/task1out
 ```
 
-+ 文件位置:/user/2020st30/output_1
++ 文件位置:MP/task1out
 + 运行截图
+
+<img src='assets/task1_运行.png' align='center'>
 
 + 结果展示
 
-<img src='assets/task1.jpg' align='center'>
+<img src='assets/task1.png' align='center'>
 
 ##### 同现统计
 
 + 执行方式
 
 ```
-hadoop jar exercise_2/JinYongUniverse.jar cooccurrence /user/2020st30/output_1 /user/2020st30/output_2
+hadoop jar CurDsn.jar cooccurrence MP/task1out MP/task2out
 ```
 
 + 文件位置:/user/2020st30/output_2
 + 运行截图
+
+<img src='assets/task2_运行.png' align='center'>
+
 + 结果展示
 
-<img src='assets/task2.jpg' align='center'>
+<img src='assets/task2out.png' align='center'>
 
 ##### 人物关系图构建及归一化
 
 + 执行方式
 
 ```
-hadoop jar exercise_2/JinYongUniverse.jar normalization /user/2020st30/output_2 /user/2020st30/output_3
+hadoop jar CurDsn.jar normalization MP/task2out MP/task3out
 ```
 
 + 文件位置:/user/2020st30/output_3
 + 运行截图
+
+<img src='assets/task3_运行.png' align='center'>
+
 + 结果展示
 
-<img src='assets/task3.jpg' align='center'>
+<img src='assets/task3out.png' align='center'>
 
 ##### **PageRank**计算
 
 + 执行方式
 
 ```
-hadoop jar exercise_2/JinYongUniverse.jar pagerank /user/2020st30/output_3 /user/2020st30/output_4
+hadoop jar Cur.jar pagerank MP/task3out Mp/task4out
 ```
 
-+ 文件位置:/user/2020st30/output_4
++ 文件位置:Mp/taskout0 MP/task4out1…MP/task4out9
+
 + 运行截图
+
+  + 第一次迭代
+
+  <img src='assets/pr_0.png' align='center'>
+
+  + 第十次迭代
+
+  <img src='assets/pr_9.png' align='center'>
+
 + 结果展示
+
+  + 第一次迭代
+
+  <img src='assets/task4out0.png' align='center'>
+
+  + 第十次迭代
+
+  <img src='assets/task4out9.png' align='center'>
 
 ##### 标签传播
 
 + 执行方式
 
 ```
-hadoop jar exercise_2/JinYongUniverse.jar lpa   /user/2020st30/output_3 /user/2020st30/RawTagPre.txt /user/2020st30/output_5
+hadoop jar CurDsn.jar lpa   MP/task4out9 /user/2020st30/rawtag.txt MP/task5out
 ```
 
-+ 文件位置:/user/2020st30/RawTagPre.txt
++ 文件位置:/MP/task5out2
+
 + 运行截图
+
+  + 第一次迭代
+
+  <img src='assets/lpa_0.png' align='center'>
+
+  + 第二次迭代
+
+  <img src='assets/lpa_1.png' align='center'>
+
+  + 第三次迭代
+
+  <img src='assets/lpa_2.png' align='center'>
+
 + 结果展示
+
+  + 第一次迭代
+
+  <img src='assets/task5out0.png' align='center'>
+
+  + 第二次迭代
+
+  <img src='assets/task5out1.png' align='center'>
+
+  + 第三次迭代
+
+  <img src='assets/task5out2.png' align='center'>
 
 ##### 可视化csv生成
 
 + 执行方式
 
 ```
-java -jar JinYongUniverse.jar csv pagerank relation tag
+java -jar CurDsn.jar csv pagerank relation tag
 ```
 
 + 结果展示
@@ -592,13 +644,21 @@ java -jar JinYongUniverse.jar csv pagerank relation tag
 
 + 结果展示
 
+![image-20200801094223552](assets\result)
+
+<img src='assets/result_1.png' align='center'>
+
+<img src='assets/result_2.png' align='center'>
+
+<img src='assets/result_3.png' align='center'>
+
+<img src='assets/result_4.png' align='center'>
+
 + 结果分析
++ 可以看到，图里囊括了金庸小说中出现的大部分人物，每本书里的人物聚集成一类，显示为相同的颜色。并且，角色越重要，其PR值越高，相应地其标签越大。书中的次要角色则以主角为中心分布。如《鹿鼎记》里的主角韦小宝，《倚天屠龙记》里的张无忌，主角贯穿了整本书，与书中的大部分人物关系都比较密切，这说明图像分析的结果是符合实际情况的。
+  
++ 每部书里的人物关系图也可以反映人物之间的联系，例如《射雕英雄传》中黄蓉，郭靖，杨康，不同作品里的人物也会产生关联，例如黄蓉，郭靖与《神雕侠侣》中的杨过小龙女等也有很多联系。
+  
 
-  + 可以看到，图里囊括了金庸小说中出现的大部分人物，每本书里的人物聚集成一类，显示为相同的颜色。并且，角色越重要，其PR值越高，相应地其标签越大。书中的次要角色则以主角为中心分布。如《鹿鼎记》里的主角韦小宝，《倚天屠龙记》里的张无忌，主角贯穿了整本书，与书中的大部分人物关系都比较密切，这说明图像分析的结果是符合实际情况的。
 
-  + 另外，一些比较笼统的人名，比如“汉子”，在多本书里都可能经常出现，在图中，其分布在了几本书的中间位置。实际上，如果按照度设置标签大小，则会出现如图6所示的反常现象。观察发现，标签比较大的往往是一些诸如“汉子”、“大汉”、“哑巴”等非具体人物的词，这是因为这些人名可能同时在多本书中出现，与这些人名一起出现的人物更多，反映到关系图中就是邻居多。但按照度排序忽视了共现次数等信息，反映到关系图中就是边的权重。因此，使用PR值排序更能反映出实际人物的重要程度。
-
-    ​	
-
-### 7.性能分析
 

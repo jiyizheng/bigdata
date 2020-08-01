@@ -75,10 +75,10 @@ public class LabelPropagation {
             }
             if (my_list[temp_max] > 0) {
                 temp_label2.put(mainName, temp_max);
-                context.write(new Text(mainName + String.valueOf(temp_max)), NullWritable.get());
+                context.write(new Text(mainName + " " + String.valueOf(temp_max)), NullWritable.get());
             } else {
                 temp_label2.put(mainName, 0);
-                context.write(new Text(mainName + String.valueOf(0)), NullWritable.get());
+                context.write(new Text(mainName + " " + String.valueOf(0)), NullWritable.get());
             }
         }
 
@@ -112,7 +112,7 @@ public class LabelPropagation {
             Configuration conf = new Configuration();
             String[] otherArgs = new GenericOptionsParser(conf, args).getRemainingArgs();
             if (otherArgs.length != 4) {
-                System.err.println(("Usage: ProProcessing <in> <rawtag> <out>"));
+                System.err.println(("Usage: lpa <in> <rawtag> <out>"));
                 System.exit(2);
             }
             Job job = new Job(conf, "LPA");

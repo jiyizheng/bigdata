@@ -16,6 +16,7 @@ public class CsvGeneriter{
 //define the nodes, edges map to print the csv file.
     static HashMap<String, Integer> nodes = new HashMap<String,Integer>();
     static HashMap<String, Double> edges = new HashMap<String,Double>();
+    static HashMap<String, Double> fakeEdges = new HashMap<String,Double>();
     static HashMap<String, Integer> tags = new HashMap<String,Integer>();
     static HashMap<String, Double> prs = new HashMap<String,Double>();
 //arg 0 for tag, 1 for edge , 2 for pr , 3 & 4 for output node & edge
@@ -37,8 +38,8 @@ public class CsvGeneriter{
             int index_r = line.indexOf("]");
 
             String word = line.substring(0, index_t);
-            double value = Double.parseDouble(line.substring(index_l+1,index_r));
-            System.out.println(word+":"+value);
+            double value = Double.parseDouble(line.substring(index_t+1,index_l));
+            //System.out.println(word+":"+value);
             prs.put(word, value);
         }
         scPr.close();
@@ -61,47 +62,26 @@ public class CsvGeneriter{
         Scanner scEdge = new Scanner(new File(args[2]),"UTF-8");
         while(scEdge.hasNext()){
             line = scEdge.nextLine();
-            
+
             int index_t = line.indexOf("\t");
-            int index_l = line.indexOf("[");
-            int index_r = line.indexOf("]");
 
-            String word = line.substring(0, index_t);
-            String names=line.substring(index_l+1,index_r);
+            String pair = line.substring(0,index_t);
+            Double value = Double.parseDouble(line.substring(index_t+1));
 
-            // StringTokenizer stWord = new StringTokenizer(line);
-            // String word = stWord.nextToken();
-            StringTokenizer stValue = new StringTokenizer(names, ";");
-            String tline;
-            int wordNo = 0;
-            try {
-                wordNo = nodes.get(word);
-            }catch (Exception e){
-                System.out.println(1);
-                continue;
-            }
-            while(stValue.hasMoreTokens()){
-                tline = stValue.nextToken();
-                StringTokenizer st2 = new StringTokenizer(tline, ":");
-                String tar = st2.nextToken();
-                double eValue = Double.parseDouble(st2.nextToken());
-                int tarNo = 0;
-                try{
-                    tarNo = nodes.get(tar);
-                }catch (Exception e){
-                    System.out.println(1);
-                    continue;
-                }
-                if(wordNo > tarNo){
-                    int t = wordNo;
-                    wordNo=tarNo;
-                    tarNo = t;
-                }
-                String edge = new String(wordNo+","+tarNo);
-                edges.put(edge, eValue);
+            StringTokenizer stPair = new StringTokenizer(pair,",");
+            int node1No=0;
+            int node2No=0;
+
+            node1No = nodes.get(stPair.nextToken());
+            node2No = nodes.get(stPair.nextToken());
+
+            if(node1No>node2No){
+                String edge = new String(node1No+","+node2No);
+                edges.put(edge, value);
             }
         }
         scEdge.close();
+
         PrintWriter pr2 = new PrintWriter(new File("node.csv"),"UTF-8");
         Set<Entry<String,Integer>> set = tags.entrySet();
         Iterator<Entry<String,Integer>> it0= set.iterator();

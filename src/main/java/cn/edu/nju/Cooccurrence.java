@@ -54,7 +54,7 @@ public class Cooccurrence {
         Configuration conf=new Configuration();
         String[] otherArgs = new GenericOptionsParser(conf, args).getRemainingArgs();
         if (otherArgs.length!=3){
-            System.err.println("Usage: Cooccurrence <in> <out>");
+            System.err.println("Usage: cooccurrence <in> <out>");
             System.exit(2);
         }
         Job job =Job.getInstance(conf,"Cooccurrence");

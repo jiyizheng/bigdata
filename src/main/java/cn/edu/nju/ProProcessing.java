@@ -70,7 +70,7 @@ public class ProProcessing {
         Configuration conf = new Configuration();
         String[] otherArgs = new GenericOptionsParser(conf, args).getRemainingArgs();
         if (otherArgs.length!=4){
-            System.err.println("Usage: ProProcessing <in> <namelist> <out>");
+            System.err.println("Usage: proprocessing <in> <namelist> <out>");
             System.exit(2);
         }
         Job job =Job.getInstance(conf,"ProProcessing");
